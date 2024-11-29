@@ -24,7 +24,6 @@ if st.button('log into your spotify account'):
 
 
 
-
 params={'playlistid':lstplaylistids}
 
 response=requests.get(http://localhost8000/endpointinyourapi,params=params)
