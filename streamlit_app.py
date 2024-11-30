@@ -10,23 +10,3 @@ import requests
 
 st.write('placeholder')
 #THese are examples and just used to set up the streamlit with fastapi for us to create the front end
-
-client_secret = st.secrets['client_secret']
-client_id = st
-client_secret = '7deaab2f08154a97905868d89919fc55'
-redirect_uri = 'https://localhost:8888/callback/'
-scope = "playlist-modify-private user-library-read playlist-read-private"
-
-if st.button('log into your spotify account'):
-
-
-    st.write('')
-
-
-
-params={'playlistid':lstplaylistids}
-
-response=requests.get(f'http://localhost8000/endpointinyourapi,{params}=params')
-
-if response ==200:
-    response.json()
