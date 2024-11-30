@@ -10,3 +10,17 @@ import requests
 
 st.write('placeholder')
 #THese are examples and just used to set up the streamlit with fastapi for us to create the front end
+
+if st.button('log into your spotify account'):
+
+
+    st.write('')
+
+
+
+params={'playlistid':'lstplaylistids'}
+
+response=requests.get(f'http://localhost8000/endpointinyourapi,{params}=params')
+
+if response ==200:
+    response.json()
