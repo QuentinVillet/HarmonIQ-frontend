@@ -1,26 +1,19 @@
 import streamlit as st
 import requests
+import webbrowser
 
-# response = requests.get("http://localhost:8501")
-# data = response.json()
+# Flask API base URL
+API_BASE_URL = "http://127.0.0.1:5000"
 
-# st.write(data['greeting'])
+# Step 1: Login
+st.title("Spotify Streamlit App")
 
-# st.write(data['greeting2'])
-
-st.write('placeholder')
-#THese are examples and just used to set up the streamlit with fastapi for us to create the front end
-
-if st.button('log into your spotify account'):
-
-
-    st.write('')
-
-
-
-params={'playlistid':'lstplaylistids'}
-
-response=requests.get(f'http://localhost8000/endpointinyourapi,{params}=params')
-
-if response == 200:
-    response.json()
+if st.button("Login to Spotify"):
+    response = requests.get(f"{API_BASE_URL}/login")
+    if response.status_code == 200:
+        auth_url = response.json().get("auth_url")
+        if auth_url:
+            webbrowser.open(auth_url)
+            st.success("Opened Spotify login page in your browser.")
+    else:
+        st.error("Failed to connect to Spotify login.")
