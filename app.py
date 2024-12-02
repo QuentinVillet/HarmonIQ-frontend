@@ -23,32 +23,68 @@ app.secret_key = secrets.token_urlsafe(16)
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session' # TBD
 
 
+
+
+
 @app.route('/')
 def login():
+    session.clear()
     sp_oauth = create_spotify_oauth()
     auth_url = sp_oauth.get_authorize_url()
     print(auth_url)
     return redirect(auth_url)
 
+# @app.route('/authorize')
+# def authorize():
+#     sp_oauth = create_spotify_oauth()
+#     session.clear()  # Clear session for fresh login
+#     code = request.args.get('code')
+
+#     try:
+#         token_info = sp_oauth.get_access_token(code)
+#         session["token_info"] = token_info
+#         print("Token obtained successfully.")
+#         return redirect('/getPlaylists')  # Redirect to playlists after successful login
+#     except Exception as e:
+#         print(f"Authorization error: {e}")
+#         return "Authorization failed. Please try again."
+
 @app.route('/authorize')
 def authorize():
     sp_oauth = create_spotify_oauth()
-    session.clear()
+
+    # Debug: Check session before clearing
+    print("Session before clear:", dict(session))
+
+    session.clear()  # Clear session for a fresh login
+
+    # Debug: Check session after clearing
+    print("Session after clear:", dict(session))
+
     code = request.args.get('code')
-    token_info = sp_oauth.get_access_token(code)
-    session["token_info"] = token_info
-    return redirect("/getPlaylists")
+
+    try:
+        token_info = sp_oauth.get_access_token(code)
+        session["token_info"] = token_info
+        print("Token obtained successfully.")
+        return redirect('/getPlaylists')
+    except Exception as e:
+        print(f"Authorization error: {e}")
+        return "Authorization failed. Please try again."
+
 
 @app.route('/logout')
 def logout():
-    for key in list(session.keys()):
-        session.pop(key)
+    session.clear()
+    # for key in list(session.keys()):
+    #     session.pop(key)
     return redirect('/')
 
 @app.route('/getPlaylists')
 def get_user_playlists():
      # Check if token is valid
     token_info, token_valid = get_token()
+    print(f"Session token: {session.get('token_info')}, Token valid: {token_valid}")
     if not token_valid:
         print("Invalid token. Redirecting to login.")
         return redirect("/")  # Redirect to login to reauthorize
@@ -83,26 +119,31 @@ def get_user_tracks():
         return "An error occurred. Please try again."
 
 
-# Checks to see if token is valid and gets a new token if not
 def get_token():
     token_valid = False
     token_info = session.get("token_info", {})
 
-    # Checking if the session already has a token stored
-    if not (session.get('token_info', False)):
-        token_valid = False
-        return token_info, token_valid
+    # No token in session
+    if not token_info:
+        return {}, token_valid
 
-    # Checking if token has expired
+    # Check if token is expired
     now = int(time.time())
-    is_token_expired = session.get('token_info').get('expires_at') - now < 60
+    is_token_expired = token_info.get('expires_at', 0) - now < 60
 
-    # Refreshing token if it has expired
-    if (is_token_expired):
+    if is_token_expired:
         sp_oauth = create_spotify_oauth()
-        token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))
+        try:
+            token_info = sp_oauth.refresh_access_token(token_info.get('refresh_token'))
+            session['token_info'] = token_info
+            token_valid = True
+        except Exception as e:
+            print(f"Error refreshing token: {e}")
+            session.clear()  # Clear session if token refresh fails
+            return {}, False
+    else:
+        token_valid = True
 
-    token_valid = True
     return token_info, token_valid
 
 
@@ -116,3 +157,26 @@ def create_spotify_oauth():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+# Checks to see if token is valid and gets a new token if not
+# def get_token():
+#     token_valid = False
+#     token_info = session.get("token_info", {})
+
+#     # Checking if the session already has a token stored
+#     if not (session.get('token_info', False)):
+#         token_valid = False
+#         return token_info, token_valid
+
+#     # Checking if token has expired
+#     now = int(time.time())
+#     is_token_expired = session.get('token_info').get('expires_at') - now < 60
+
+#     # Refreshing token if it has expired
+#     if (is_token_expired):
+#         sp_oauth = create_spotify_oauth()
+#         token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))
+
+#     token_valid = True
+#     return token_info, token_valid
