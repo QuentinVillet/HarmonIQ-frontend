@@ -22,5 +22,5 @@ params={'playlistid':'lstplaylistids'}
 
 response=requests.get(f'http://localhost8000/endpointinyourapi,{params}=params')
 
-if response ==200:
+if response == 200:
     response.json()
