@@ -1,6 +1,6 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-from flask import Flask, url_for, session, request, redirect
+from flask import Flask, url_for, session, request, redirect, jsonify
 from dotenv import load_dotenv
 import secrets
 import os
@@ -23,31 +23,26 @@ app.secret_key = secrets.token_urlsafe(16)
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session' # TBD
 
 
-
-
 @app.route('/login')
 def login():
     session.clear()
     sp_oauth = create_spotify_oauth()
     auth_url = sp_oauth.get_authorize_url()
-    print(auth_url)
-    return redirect(auth_url)
+    return jsonify({"auth_url": auth_url})
 
 
 @app.route('/authorize')
 def authorize():
     sp_oauth = create_spotify_oauth()
-    session.clear()  # Clear session for a fresh login
     code = request.args.get('code')
     try:
         token_info = sp_oauth.get_access_token(code)
         session["token_info"] = token_info
-        print("Token obtained successfully.")
-        return redirect('/getPlaylists')
+        # Redirect back to Streamlit with a success indicator
+        return redirect(f"http://localhost:8501/?success=true")  # Replace with Streamlit URL
     except Exception as e:
         print(f"Authorization error: {e}")
-        return "Authorization failed. Please try again."
-
+        return redirect(f"http://localhost:8501/?success=false")
 
 @app.route('/logout')
 def logout():
