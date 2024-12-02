@@ -21,7 +21,7 @@ df2 = pd.DataFrame({
     'Activity': ['data #4']
 })
 
-df2
+st.dataframe(data=df2, width=900)
 
 
 

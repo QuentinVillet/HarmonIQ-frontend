@@ -26,8 +26,8 @@ st.session_state.password
 
 
 
+"when authenticated - a validation message "
 
-st.write("when authenticated - a validation message ")
 
 
 st.markdown("""
@@ -42,4 +42,4 @@ df = pd.DataFrame({
 
 #Showing process stages of the app
 
-df
+st.dataframe(data=df, width=900)
