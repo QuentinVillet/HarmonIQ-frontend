@@ -4,3 +4,4 @@ pandas
 spotipy
 flask
 flask-session
+python-dotenv
