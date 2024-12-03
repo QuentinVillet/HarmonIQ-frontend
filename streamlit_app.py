@@ -54,7 +54,10 @@ if st.button("Get Playlists"):
     else:
         st.error("Failed to fetch playlists.")
 
-
+if st.button("predict cluster"):
+    track_ids = "1hR0fIFK2qRG3f3RF70pb7,6GgtzLTbxICwTsLwnN3nTG"
+    clusters = requests.get(f"http://localhost:8000/predict?track_ids={track_ids}")
+    st.write(clusters.json())
 # Log out
 if st.button("log out"):
     response = requests.get(f"{API_BASE_URL}/logout")

@@ -1,0 +1,15 @@
+raw_data/
+/data
+*.csv
+*.h5
+*.zip
+.env
+*__pycache__*
+*__pychache__/
+*.pyc
+*.ipynb_checkpoints/
+*egg-info*
+.cache
+*.pickle
+.DS_Store
+/*_session/
