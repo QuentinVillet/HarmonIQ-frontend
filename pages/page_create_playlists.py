@@ -55,6 +55,7 @@ if st.button("Get Playlists"):
         st.error("Failed to fetch playlists.")
 
 
+
 # Log out
 if st.button("log out"):
     response = requests.get(f"{API_BASE_URL}/logout")
