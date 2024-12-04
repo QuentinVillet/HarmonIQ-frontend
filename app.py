@@ -23,9 +23,17 @@ scope = "playlist-modify-private user-library-read playlist-read-private"
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(16)
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session' # TBD
+app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on the server
 app.config['SESSION_PERMANENT'] = False    # Make sessions non-permanent
 app.config['SESSION_FILE_DIR'] = os.path.join(os.getcwd(), 'flask_session')  # Directory for session files
+
+# if not os.path.exists(app.config['SESSION_FILE_DIR']):
+#     print(f"Session directory {app.config['SESSION_FILE_DIR']} does not exist.")
+#     os.makedirs(app.config['SESSION_FILE_DIR'])
+#     print(f"Created session directory at {app.config['SESSION_FILE_DIR']}.")
+
 Session(app)
 
 
@@ -39,13 +47,15 @@ def login():
 
 @app.route('/authorize')
 def authorize():
+    session.clear()
     sp_oauth = create_spotify_oauth()
     code = request.args.get('code')
     try:
         token_info = sp_oauth.get_access_token(code)
-        session["token_info"] = token_info
+        session['token_info'] = token_info
+        print(f"Session after authorization: {session.get('token_info')}")
         # Redirect back to Streamlit with a success indicator
-        return redirect(f"http://localhost:8502/?success=true&token={token_info['access_token']}")  # Replace with Streamlit URL
+        return redirect(f"http://localhost:8502/?success=true&token={token_info['access_token']}") # Replace with Streamlit URL
     except Exception as e:
         print(f"Authorization error: {e}")
         return redirect(f"http://localhost:8502/?success=false")
@@ -56,7 +66,20 @@ def logout():
     session.clear()
     for key in list(session.keys()):
         session.pop(key)
-    return jsonify({'session status': 'succesfully logged out.'})
+    session.clear()
+    return jsonify({'session': 'clear'})
+
+
+@app.route('/user')
+def get_user():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Missing or invalid Authorization header"}), 401
+    access_token = auth_header.split(" ")[1]
+    session['access_token'] = access_token
+    sp = spotipy.Spotify(auth=access_token)
+    user = sp.current_user()
+    return jsonify(user)
 
 
 @app.route('/playlists')
@@ -65,15 +88,31 @@ def get_playlists():
     if not auth_header or not auth_header.startswith("Bearer "):
         return jsonify({"error": "Missing or invalid Authorization header"}), 401
     access_token = auth_header.split(" ")[1]
-
+    session['access_token'] = access_token
     sp = spotipy.Spotify(auth=access_token)
+
     playlists = sp.current_user_playlists(limit=50)
     # playlists = [{'name':item['name'], 'id':item['id']} for item in results['items']]
     return jsonify(playlists)
 
-# if not token_valid:
-    #     print("Invalid token. Redirecting to login.")
-    #     return redirect("/")
+
+@app.route('/playlist_tracks')
+def get_playlist_tracks(id):
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Missing or invalid Authorization header"}), 401
+    access_token = auth_header.split(" ")[1]
+    session['access_token'] = access_token
+    sp = spotipy.Spotify(auth=access_token)
+
+    playlist_tracks = sp.playlist(id)['tracks']['items']
+    return jsonify(playlist_tracks)
+
+
+@app.route('/debug_session')
+def debug_session():
+    return jsonify({"session_data": session.get("access_token", "No session data")})
+
 
 @app.route('/favTracks')
 def get_user_tracks():
@@ -131,8 +170,6 @@ def create_spotify_oauth():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
 
 
 
