@@ -1,7 +1,6 @@
 import streamlit as st
-import app.login as login
-import app.home_page as home_page
-import app.playlist_page as playlist_page
+import home_page as home_page
+import playlist_page as playlist_page
 
 
 
