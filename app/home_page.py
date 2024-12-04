@@ -9,7 +9,7 @@ import requests
 # Spotify app credentials
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-REDIRECT_URI = "http://localhost:8501"    # "http://localhost:8888"
+REDIRECT_URI = "https://harmoniq-frontend-9hxq9xgg7clppw9nwuzy8p.streamlit.app/?page=home"    # "http://localhost:8888"
 
 # Spotify URLs
 AUTH_URL = "https://accounts.spotify.com/authorize"
