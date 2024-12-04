@@ -96,9 +96,7 @@ def home_page():
         playlists = results.json().get('items', [])
         for playlist in playlists:
             if st.button(f"🎵 {playlist['name']} ({playlist['tracks']['total']} tracks)"):
-
-        
-
+                st.write('tracks')
 
 
 if __name__ == "__main__":
