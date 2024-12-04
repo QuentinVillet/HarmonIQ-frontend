@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import spotipy
-from app.login import login
 from urllib.parse import urlencode
 import requests
 
