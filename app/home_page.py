@@ -30,7 +30,6 @@ pages = st.sidebar.radio("Go to", list(PAGES.keys()))
 
 
 def home_page():
-
     st.title(f"""Welcome to HarmonIQ.""")
     st.query_params.update(page='home')
 
