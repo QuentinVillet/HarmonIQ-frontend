@@ -9,7 +9,8 @@ import requests
 # Spotify app credentials
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-REDIRECT_URI = "https://harmoniq-frontend-9hxq9xgg7clppw9nwuzy8p.streamlit.app/?page=home"    # "http://localhost:8888"
+REDIRECT_URI = "https://harmoniq-frontend-9hxq9xgg7clppw9nwuzy8p.streamlit.app"
+SCOPE = "playlist-modify-private user-library-read playlist-read-private"
 
 # Spotify URLs
 AUTH_URL = "https://accounts.spotify.com/authorize"
@@ -39,7 +40,7 @@ def home_page():
             "client_id": CLIENT_ID,
             "response_type": "code",
             "redirect_uri": REDIRECT_URI,
-            "scope": "user-read-private user-read-email",
+            "scope": SCOPE,
         }
         auth_url = f"{AUTH_URL}?{urlencode(params)}"
 
@@ -87,12 +88,16 @@ def home_page():
         sp = spotipy.Spotify(auth=st.session_state['access_token'])
         results = sp.current_user_playlists(limit=50)
 
-        playlists = [{'name':item['name'], 'id':item['id']} for item in results['items']]
-        # st.write(playlists)
+        # playlists = [{'name':item['name'], 'id':item['id']} for item in results['items']]
+        # # st.write(playlists)
+        # for playlist in playlists:
+        #     st.button(f'{playlist["name"]} ({playlist["id"]})')
+
+        playlists = results.json().get('items', [])
         for playlist in playlists:
-            st.button(f'{playlist["name"]} ({playlist["id"]})')
+            if st.button(f"🎵 {playlist['name']} ({playlist['tracks']['total']} tracks)"):
 
-
+        
 
 
 
