@@ -31,8 +31,18 @@
 #     if query_params["success"] == "true":
 #         st.success("Successfully logged in to Spotify!")
 #         st.session_state.access_token = query_params["token"]
+#         st.write(st.session_state)
 #     else:
 #         st.error(f"Spotify login failed. Please try again.")
+
+
+# # Log out
+# if st.button("log out"):
+#     response = requests.get(f"{API_BASE_URL}/logout")
+#     if response.status_code == 200:
+#         st.success('succesfully logged out')
+#     else:
+#         st.error(f'error {response.status_code}')
 
 
 
@@ -54,15 +64,24 @@
 #     else:
 #         st.error("Failed to fetch playlists.")
 
-# if st.button("predict cluster"):
-#     track_ids = "1hR0fIFK2qRG3f3RF70pb7,6GgtzLTbxICwTsLwnN3nTG"
-#     clusters = requests.get(f"http://localhost:8000/predict?track_ids={track_ids}")
-#     st.write(clusters.json())
 
-# # Log out
-# if st.button("log out"):
-#     response = requests.get(f"{API_BASE_URL}/logout")
+
+
+# # SUMMARY DATA
+# if st.button("Get Artists"):
+#     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+#     response = requests.get(f"{API_BASE_URL}/me/top/artists", headers=headers)
+#     st.write(response.status_code)
+
 #     if response.status_code == 200:
-#         st.success('succesfully logged out')
+#         artists = response.json().get('items', [])
+#         for artist in artists:
+#             if st.button(f"🎵 {artist['name']} ({artist['tracks']['total']} tracks)"):
+#                 st.write(f"{artist['tracks']}")
+#                 # for track in tracks:
+#                 #         st.write(f"🎵 {track['name']} ({track['tracks']['total']} tracks)")
+
+#     elif response.status_code == 401:
+#         st.error("You are not logged in. Please login first.")
 #     else:
-#         st.error(f'error {response.status_code}')
+#         st.error("Failed to fetch artists.")
