@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import spotipy
+from spotipy import Spotify, SpotifyException
 from urllib.parse import urlencode
 import requests
 
@@ -35,43 +36,48 @@ def home_page():
 
     # Log in
     if 'access_token' not in st.session_state:
-        st.session_state['access_token'] = None
-        params = {
-            "client_id": CLIENT_ID,
-            "response_type": "code",
-            "redirect_uri": REDIRECT_URI,
-            "scope": SCOPE,
-        }
-        auth_url = f"{AUTH_URL}?{urlencode(params)}"
-
-        # st.write("To start, authenticate with Spotify.")
-        st.markdown(f"[Login with Spotify]({auth_url})")
-
-        # Use st.query_params to fetch the code
-        st.query_params.update(page="home")
-        query_params = st.query_params
-        code = query_params.get("code")
-        if code:
-            code = code
-
-            # Exchange the code for access token
-            token_data = {
-                "grant_type": "authorization_code",
-                "code": code,
-                "redirect_uri": REDIRECT_URI,
+        try:
+            st.session_state['access_token'] = None
+            params = {
                 "client_id": CLIENT_ID,
-                "client_secret": CLIENT_SECRET,
+                "response_type": "code",
+                "redirect_uri": REDIRECT_URI,
+                "scope": SCOPE,
             }
-            response = requests.post(TOKEN_URL, data=token_data)
+            auth_url = f"{AUTH_URL}?{urlencode(params)}"
 
-            if response.status_code == 200:
-                token_info = response.json()
-                st.session_state.logged_in = True
-                st.session_state["access_token"] = token_info["access_token"]
-                st.session_state["refresh_token"] = token_info.get("refresh_token")
-                st.success("Authentication successful!")
-                st.query_params.update(page="home")
+            # st.write("To start, authenticate with Spotify.")
+            st.markdown(f"[Login with Spotify]({auth_url})")
 
+            # Use st.query_params to fetch the code
+            st.query_params.update(page="home")
+            query_params = st.query_params
+            code = query_params.get("code")
+            if code:
+                code = code
+
+                # Exchange the code for access token
+                token_data = {
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": REDIRECT_URI,
+                    "client_id": CLIENT_ID,
+                    "client_secret": CLIENT_SECRET,
+                }
+                response = requests.post(TOKEN_URL, data=token_data)
+
+                if response.status_code == 200:
+                    token_info = response.json()
+                    st.session_state.logged_in = True
+                    st.session_state["access_token"] = token_info["access_token"]
+                    st.session_state["refresh_token"] = token_info.get("refresh_token")
+                    st.success("Authentication successful!")
+                    st.query_params.update(page="home")
+
+        except SpotifyException as e:
+            # Log the error for debugging
+            st.error("An error occurred while fetching user data. Please try again.")
+            print(f"SpotifyException: {e}")
 
 
     # Dashboard
