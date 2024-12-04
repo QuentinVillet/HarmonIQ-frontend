@@ -24,21 +24,22 @@ app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(16)
 app.config['SESSION_COOKIE_NAME'] = 'spotify-login-session' # TBD
 app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on the server
 app.config['SESSION_PERMANENT'] = False    # Make sessions non-permanent
 app.config['SESSION_FILE_DIR'] = os.path.join(os.getcwd(), 'flask_session')  # Directory for session files
 
-if not os.path.exists(app.config['SESSION_FILE_DIR']):
-    print(f"Session directory {app.config['SESSION_FILE_DIR']} does not exist.")
-    os.makedirs(app.config['SESSION_FILE_DIR'])
-    print(f"Created session directory at {app.config['SESSION_FILE_DIR']}.")
+# if not os.path.exists(app.config['SESSION_FILE_DIR']):
+#     print(f"Session directory {app.config['SESSION_FILE_DIR']} does not exist.")
+#     os.makedirs(app.config['SESSION_FILE_DIR'])
+#     print(f"Created session directory at {app.config['SESSION_FILE_DIR']}.")
 
 Session(app)
 
 
 @app.route('/login')
 def login():
-    # session.clear()
+    session.clear()
     sp_oauth = create_spotify_oauth()
     auth_url = sp_oauth.get_authorize_url()
     return jsonify({"auth_url": auth_url})
@@ -46,6 +47,7 @@ def login():
 
 @app.route('/authorize')
 def authorize():
+    session.clear()
     sp_oauth = create_spotify_oauth()
     code = request.args.get('code')
     try:
@@ -53,7 +55,7 @@ def authorize():
         session['token_info'] = token_info
         print(f"Session after authorization: {session.get('token_info')}")
         # Redirect back to Streamlit with a success indicator
-        return redirect(f"http://localhost:8502/?success=true&token={token_info['access_token']}") # Replace with Streamlit URL &token={token_info['access_token']}
+        return redirect(f"http://localhost:8502/?success=true&token={token_info['access_token']}") # Replace with Streamlit URL
     except Exception as e:
         print(f"Authorization error: {e}")
         return redirect(f"http://localhost:8502/?success=false")
@@ -61,10 +63,12 @@ def authorize():
 
 @app.route('/logout')
 def logout():
+    session.clear()
     for key in list(session.keys()):
         session.pop(key)
     session.clear()
-    return redirect(f"http://localhost:8502/")
+    return jsonify({'session': 'clear'})
+
 
 @app.route('/user')
 def get_user():
@@ -76,6 +80,7 @@ def get_user():
     sp = spotipy.Spotify(auth=access_token)
     user = sp.current_user()
     return jsonify(user)
+
 
 @app.route('/playlists')
 def get_playlists():
@@ -90,6 +95,7 @@ def get_playlists():
     # playlists = [{'name':item['name'], 'id':item['id']} for item in results['items']]
     return jsonify(playlists)
 
+
 @app.route('/playlist_tracks')
 def get_playlist_tracks(id):
     auth_header = request.headers.get('Authorization')
@@ -101,6 +107,7 @@ def get_playlist_tracks(id):
 
     playlist_tracks = sp.playlist(id)['tracks']['items']
     return jsonify(playlist_tracks)
+
 
 @app.route('/debug_session')
 def debug_session():
@@ -163,8 +170,6 @@ def create_spotify_oauth():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
 
 
 

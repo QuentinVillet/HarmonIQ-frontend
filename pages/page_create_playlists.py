@@ -16,6 +16,7 @@ if "access_token" not in st.session_state:
 
 def show_login_page():
 
+    st.session_state.clear()
     if "user_name" not in st.session_state:
         st.session_state.user_name = None
     if "logged_in" not in st.session_state:
@@ -54,6 +55,9 @@ def show_main_page():
     response = requests.get(f"{API_BASE_URL}/user", headers=headers)
     st.session_state.user_name = response.json()['display_name']
     st.title(f"""Nice to meet you {st.session_state.user_name}""")
+
+    response = requests.get(f"{API_BASE_URL}/get_token")
+    st.write(response)
 
 
     # Cached function to fetch playlists
@@ -98,11 +102,12 @@ def show_main_page():
 
 
 
-
 # Log out
 if st.button("log out"):
+    access_token = st.session_state.access_token
+    headers = {"Authorization": f"Bearer {access_token}"}
+    response = requests.get(f"{API_BASE_URL}/logout", headers=headers)
     st.session_state.clear()
-    st.write(st.session_state)
     show_login_page()
 
 
